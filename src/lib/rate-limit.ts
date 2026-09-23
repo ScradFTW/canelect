@@ -1,8 +1,9 @@
 import 'server-only';
 
 /**
- * Minimal in-memory sliding-window rate limiter. Per server process, so it
- * resets on restart; fine for a single pm2 instance.
+ * Minimal in-memory sliding-window rate limiter. State is per server
+ * process: it resets on restart, and with several Cloud Run instances the
+ * effective limit is up to (limit × instances).
  */
 export function createRateLimiter({limit, windowMs}: { limit: number; windowMs: number }) {
     const hits = new Map<string, number[]>();

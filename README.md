@@ -45,6 +45,7 @@ docker run -d --rm --name electionmap-db -e POSTGRES_PASSWORD=dev -p 5432:5432 p
 | `npm start`         | Serve the production build       |
 | `npm run lint`      | ESLint                           |
 | `npm run typecheck` | TypeScript type check            |
+| `npm test`          | Unit tests (Vitest)              |
 
 ## API
 
@@ -77,7 +78,7 @@ Production runs on Google Cloud Run at
 [electionmap.bradjobe.dev](https://electionmap.bradjobe.dev), with Cloud SQL
 Postgres. The infrastructure lives in
 [bradjobe-dev-infra](https://github.com/ScradFTW/bradjobe-dev-infra) (`electionmap.tf`).
-Every push to `main` runs `cloudbuild.yaml`, which lints, typechecks, builds the
+Every push to `main` runs `cloudbuild.yaml`, which lints, typechecks, runs the unit tests, builds the
 `Dockerfile` (Next.js standalone output) and deploys a new revision.
 
 Environment variables the container reads at runtime:

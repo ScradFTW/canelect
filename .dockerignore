@@ -11,3 +11,7 @@ Dockerfile
 cloudbuild.yaml
 scripts
 docs
+# Tests run in cloudbuild.yaml's check step, not in the image
+test
+src/**/__tests__
+vitest.config.mts
