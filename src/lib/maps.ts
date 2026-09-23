@@ -74,20 +74,69 @@ export type SavedMap = {
     createdAt: string;
 };
 
-/** Stores a new map under a fresh random name and returns that name. */
+/** Site-wide minimum gap between saved maps, across every server instance. */
+export const MIN_SAVE_INTERVAL_MS = 1000;
+
+/** Thrown by createMap when another map was saved less than MIN_SAVE_INTERVAL_MS ago. */
+export class SaveRateLimitedError extends Error {
+    constructor() {
+        super('Another map was saved less than a second ago');
+        this.name = 'SaveRateLimitedError';
+    }
+}
+
+/**
+ * Stores a new map under a fresh random name and returns that name.
+ *
+ * Saves are limited site-wide to one per MIN_SAVE_INTERVAL_MS, enforced in
+ * Postgres so it holds across every Cloud Run instance. Each save claims the
+ * single save_throttle row inside its transaction: the row lock makes
+ * concurrent saves queue, and a save only proceeds if the last one was at
+ * least the interval ago. The timestamp is refreshed right before commit, so
+ * committed saves are always at least that far apart, however long the
+ * insert takes. Throws SaveRateLimitedError when the claim fails.
+ */
 export async function createMap(ridings: PartyRidings): Promise<string> {
     await ensureSchema();
-    // Retry on name collisions; after enough tries, add a number suffix
-    for (let attempt = 0; attempt < 50; attempt++) {
-        const base = makeRandomSillyName();
-        const name = attempt < 25 ? base : `${base}-${randomInt(10, 1000)}`;
-        const res = await getPool().query(
-            'INSERT INTO maps (name, ridings) VALUES ($1, $2::jsonb) ON CONFLICT (name) DO NOTHING',
-            [name, JSON.stringify(ridings)]
+    const client = await getPool().connect();
+    try {
+        await client.query('BEGIN');
+
+        const claim = await client.query(
+            `UPDATE save_throttle
+             SET last_saved_at = clock_timestamp()
+             WHERE id = 1
+               AND last_saved_at <= clock_timestamp() - make_interval(secs => $1)`,
+            [MIN_SAVE_INTERVAL_MS / 1000]
         );
-        if (res.rowCount) return name;
+        if (!claim.rowCount) {
+            await client.query('ROLLBACK');
+            throw new SaveRateLimitedError();
+        }
+
+        // Retry on name collisions; after enough tries, add a number suffix
+        for (let attempt = 0; attempt < 50; attempt++) {
+            const base = makeRandomSillyName();
+            const name = attempt < 25 ? base : `${base}-${randomInt(10, 1000)}`;
+            const res = await client.query(
+                'INSERT INTO maps (name, ridings) VALUES ($1, $2::jsonb) ON CONFLICT (name) DO NOTHING',
+                [name, JSON.stringify(ridings)]
+            );
+            if (res.rowCount) {
+                await client.query('UPDATE save_throttle SET last_saved_at = clock_timestamp() WHERE id = 1');
+                await client.query('COMMIT');
+                return name;
+            }
+        }
+        throw new Error('Failed to generate unique map name');
+    } catch (err) {
+        if (!(err instanceof SaveRateLimitedError)) {
+            await client.query('ROLLBACK').catch(() => {});
+        }
+        throw err;
+    } finally {
+        client.release();
     }
-    throw new Error('Failed to generate unique map name');
 }
 
 export async function getMap(name: string): Promise<SavedMap | null> {

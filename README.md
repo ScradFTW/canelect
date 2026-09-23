@@ -59,8 +59,16 @@ docker run -d --rm --name electionmap-db -e POSTGRES_PASSWORD=dev -p 5432:5432 p
 | Route                  | Method | What it does                                                                 |
 |------------------------|--------|------------------------------------------------------------------------------|
 | `/api/maps`            | GET    | List saved maps with party counts. Supports `page`, `limit` (max 100), `sortKey`, `sortAsc`, `hideIncomplete`, `hideSingleParty`. |
-| `/api/maps`            | POST   | Save `{ "ridings": { "<ridingId>": "<party>" } }`; returns the generated `name`. Limited to 10 saves per IP per 10 minutes. |
+| `/api/maps`            | POST   | Save `{ "ridings": { "<ridingId>": "<party>" } }`; returns the generated `name`. See rate limits below. |
 | `/api/maps/<name>`     | GET    | One saved map.                                                               |
+
+Saving is rate-limited two ways, and both return `429` with a message asking the user
+to try again:
+
+- **Site-wide: at most one map per second.** Enforced in Postgres (a one-row
+  `save_throttle` table claimed inside each save's transaction), so it holds across
+  every server instance. Responses include `Retry-After: 1`.
+- **Per client IP: 10 saves per 10 minutes.** In memory, per server instance.
 
 Saved maps are validated on the server: only the 343 known riding IDs and the five
 party names are accepted, in a request body of at most 64 KB.

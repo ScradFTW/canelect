@@ -158,6 +158,17 @@ describe('POST /api/maps', () => {
         expect((await post(body)).status).toBe(201);
     });
 
+    it('asks the user to try again when the site-wide save limit is hit', async () => {
+        const {SaveRateLimitedError} = await import('@/lib/maps');
+        createMap.mockRejectedValue(new SaveRateLimitedError());
+
+        const res = await post(JSON.stringify({ridings: {'10001': 'Liberal'}}));
+
+        expect(res.status).toBe(429);
+        expect(res.headers.get('Retry-After')).toBe('1');
+        expect((await res.json()).error).toMatch(/try again/i);
+    });
+
     it('returns 500 when saving fails', async () => {
         createMap.mockRejectedValue(new Error('db down'));
         vi.spyOn(console, 'error').mockImplementation(() => {});

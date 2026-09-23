@@ -1,16 +1,21 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
 const query = vi.fn();
+// createMap runs on a checked-out client (for its transaction)
+const clientQuery = vi.fn();
+const release = vi.fn();
 vi.mock('../db', () => ({
     ensureSchema: vi.fn(async () => undefined),
-    getPool: () => ({query}),
+    getPool: () => ({query, connect: async () => ({query: clientQuery, release})}),
 }));
 
-const {createMap, getMap, parseRidings, sanitizeRidings} = await import('../maps');
+const {createMap, getMap, parseRidings, sanitizeRidings, SaveRateLimitedError} = await import('../maps');
 const {Party} = await import('@/components/CanadaMap/types/types');
 
 beforeEach(() => {
     query.mockReset();
+    clientQuery.mockReset();
+    release.mockReset();
 });
 
 describe('parseRidings', () => {
@@ -68,30 +73,81 @@ describe('sanitizeRidings', () => {
 });
 
 describe('createMap', () => {
-    it('stores the map under a generated name', async () => {
-        query.mockResolvedValueOnce({rowCount: 1});
+    // Scripts clientQuery by SQL: whether the throttle claim succeeds, and the
+    // rowCount each INSERT attempt returns in turn
+    function scriptDb({claimed = true, inserts = [1]}: { claimed?: boolean; inserts?: number[] } = {}) {
+        const insertResults = [...inserts];
+        clientQuery.mockImplementation(async (sql: string) => {
+            if (sql.includes('SET last_saved_at = clock_timestamp()') && sql.includes('WHERE id = 1\n')) {
+                return {rowCount: claimed ? 1 : 0};
+            }
+            if (sql.startsWith('INSERT INTO maps')) {
+                return {rowCount: insertResults.shift() ?? 0};
+            }
+            return {rowCount: 1};
+        });
+    }
+    const statements = () => clientQuery.mock.calls.map(([sql]) => (sql as string).trim().split(/\s+/).slice(0, 2).join(' '));
+
+    it('claims the save slot, stores the map and commits', async () => {
+        scriptDb();
 
         const name = await createMap({'10001': Party.Liberal});
 
         expect(name).toMatch(/^\S+-\S+$/);
-        const [sql, params] = query.mock.calls[0];
-        expect(sql).toContain('INSERT INTO maps');
-        expect(params).toEqual([name, JSON.stringify({'10001': 'Liberal'})]);
+        expect(statements()).toEqual(['BEGIN', 'UPDATE save_throttle', 'INSERT INTO', 'UPDATE save_throttle', 'COMMIT']);
+        const insert = clientQuery.mock.calls.find(([sql]) => (sql as string).startsWith('INSERT INTO maps'))!;
+        expect(insert[1]).toEqual([name, JSON.stringify({'10001': 'Liberal'})]);
+        expect(release).toHaveBeenCalledOnce();
     });
 
-    it('tries another name when one is already taken', async () => {
-        query.mockResolvedValueOnce({rowCount: 0}).mockResolvedValueOnce({rowCount: 1});
+    it('requires at least one second since the last save', async () => {
+        scriptDb();
 
         await createMap({'10001': Party.Liberal});
 
-        expect(query).toHaveBeenCalledTimes(2);
+        const claim = clientQuery.mock.calls.find(([sql]) => (sql as string).includes('make_interval'))!;
+        expect(claim[1]).toEqual([1]);
     });
 
-    it('gives up after 50 collisions', async () => {
-        query.mockResolvedValue({rowCount: 0});
+    it('refuses to save when another map was saved within the last second', async () => {
+        scriptDb({claimed: false});
+
+        await expect(createMap({'10001': Party.Liberal})).rejects.toBeInstanceOf(SaveRateLimitedError);
+
+        expect(statements()).toEqual(['BEGIN', 'UPDATE save_throttle', 'ROLLBACK']);
+        expect(release).toHaveBeenCalledOnce();
+    });
+
+    it('tries another name when one is already taken', async () => {
+        scriptDb({inserts: [0, 1]});
+
+        await createMap({'10001': Party.Liberal});
+
+        expect(statements().filter(s => s === 'INSERT INTO')).toHaveLength(2);
+        expect(statements().at(-1)).toBe('COMMIT');
+    });
+
+    it('rolls back and gives up after 50 name collisions', async () => {
+        scriptDb({inserts: []});
 
         await expect(createMap({'10001': Party.Liberal})).rejects.toThrow('Failed to generate unique map name');
-        expect(query).toHaveBeenCalledTimes(50);
+
+        expect(statements().filter(s => s === 'INSERT INTO')).toHaveLength(50);
+        expect(statements().at(-1)).toBe('ROLLBACK');
+        expect(release).toHaveBeenCalledOnce();
+    });
+
+    it('rolls back and releases the connection when the database fails', async () => {
+        clientQuery.mockImplementation(async (sql: string) => {
+            if (sql.startsWith('INSERT INTO maps')) throw new Error('disk full');
+            return {rowCount: 1};
+        });
+
+        await expect(createMap({'10001': Party.Liberal})).rejects.toThrow('disk full');
+
+        expect(statements().at(-1)).toBe('ROLLBACK');
+        expect(release).toHaveBeenCalledOnce();
     });
 });
 

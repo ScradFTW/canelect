@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {ensureSchema, getPool} from '@/lib/db';
-import {createMap, parseRidings} from '@/lib/maps';
+import {createMap, parseRidings, SaveRateLimitedError} from '@/lib/maps';
 import {clientIp, createRateLimiter} from '@/lib/rate-limit';
 
 type Entry = {
@@ -177,6 +177,12 @@ export async function POST(req: NextRequest) {
         const name = await createMap(ridings);
         return NextResponse.json({name}, {status: 201});
     } catch (err) {
+        if (err instanceof SaveRateLimitedError) {
+            return NextResponse.json(
+                {error: 'Lots of maps are being saved right now. Please try again in a moment.'},
+                {status: 429, headers: {'Retry-After': '1'}},
+            );
+        }
         console.error('Error in POST /api/maps', err);
         return NextResponse.json({error: 'Internal Server Error'}, {status: 500});
     }

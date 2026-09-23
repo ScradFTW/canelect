@@ -26,6 +26,14 @@ const SCHEMA = `
         ridings    JSONB       NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    -- One row recording when the last map was saved; see createMap
+    CREATE TABLE IF NOT EXISTS save_throttle
+    (
+        id            INT PRIMARY KEY CHECK (id = 1),
+        last_saved_at TIMESTAMPTZ NOT NULL DEFAULT '-infinity'
+    );
+    INSERT INTO save_throttle (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 `;
 
 let schemaReady: Promise<void> | null = null;
