@@ -19,7 +19,6 @@ export interface CanadaMapProps {
     sillyName: string;
     /** True for the draft editor on the home page; saved maps are read-only */
     editable: boolean;
-    usingJsonFile: boolean;
 }
 
 // Riding data structure

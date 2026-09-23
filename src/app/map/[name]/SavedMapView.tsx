@@ -25,7 +25,6 @@ export default function SavedMapView({name, ridings}: { name: string; ridings: P
             />
             <CanadaMap
                 editable={false}
-                usingJsonFile={false}
                 initRidings={ridings}
                 sillyName={name}
             />

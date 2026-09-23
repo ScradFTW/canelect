@@ -67,7 +67,7 @@ import {hasDraft, saveDraft} from './utils/draft';
 
 
 const GeoJsonMap: React.FC<CanadaMapProps>
-    = ({initRidings, sillyName, editable, usingJsonFile}) => {
+    = ({initRidings, sillyName, editable}) => {
     const {t} = useTranslation();
     const router = useRouter();
     // Use useMemo to simplify the GeoJSON data once when the component mounts
@@ -260,7 +260,6 @@ const GeoJsonMap: React.FC<CanadaMapProps>
     const handleShareMap = async () => {
         await shareMapUtil(
             sillyName,
-            usingJsonFile,
             setIsSharing,
             setShareUrl,
             setIsShareModalOpen
@@ -367,7 +366,6 @@ const GeoJsonMap: React.FC<CanadaMapProps>
             </div>
 
             <MapSummary
-                usingJsonMap={usingJsonFile}
                 nationalCounts={nationalCounts}
                 nationalTotal={nationalTotal}
                 totalDecidedRidings={totalDecidedRidings}
@@ -377,7 +375,6 @@ const GeoJsonMap: React.FC<CanadaMapProps>
             />
 
             <UndecidedRidings
-                usingJsonMap={usingJsonFile}
                 isAccordionOpen={isAccordionOpen}
                 setIsAccordionOpen={setIsAccordionOpen}
                 undecidedRidingsByProvince={undecidedRidingsByProvince}

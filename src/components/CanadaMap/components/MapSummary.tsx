@@ -12,7 +12,6 @@ interface MapSummaryProps {
     isExporting: boolean;
     isMobile: boolean;
     summaryRef: React.RefObject<HTMLDivElement | null>;
-    usingJsonMap: boolean;
 }
 
 const MapSummary: React.FC<MapSummaryProps>
@@ -22,8 +21,7 @@ const MapSummary: React.FC<MapSummaryProps>
            totalDecidedRidings,
            isExporting,
            isMobile,
-           summaryRef,
-           usingJsonMap
+           summaryRef
        }) => {
     const { t } = useTranslation();
 
@@ -100,7 +98,7 @@ const MapSummary: React.FC<MapSummaryProps>
 
                     {/* Undecided count */}
                     <div style={{marginTop: '16px', fontSize: '15px'}}>
-                        <strong>{usingJsonMap ? 'Tossups' : 'Undecided:'}</strong> {nationalTotal - totalDecidedRidings} riding(s)
+                        <strong>Undecided:</strong> {nationalTotal - totalDecidedRidings} riding(s)
                     </div>
 
                     {/* Total count */}

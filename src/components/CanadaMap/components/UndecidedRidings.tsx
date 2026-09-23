@@ -17,7 +17,6 @@ interface UndecidedRidingsProps {
     centerMapOnRiding: (ridingId: string) => void;
     setProvinceUndecidedRidingsToParty: (province: string, party: Party) => void;
     editable: boolean;
-    usingJsonMap: boolean;
 }
 
 const UndecidedRidings: React.FC<UndecidedRidingsProps> = ({
@@ -27,7 +26,6 @@ const UndecidedRidings: React.FC<UndecidedRidingsProps> = ({
     centerMapOnRiding,
     setProvinceUndecidedRidingsToParty,
     editable,
-    usingJsonMap,
 }) => {
     const totalUndecidedRidings = Object.values(undecidedRidingsByProvince).flat().length;
 
@@ -38,7 +36,7 @@ const UndecidedRidings: React.FC<UndecidedRidingsProps> = ({
                 onClick={() => setIsAccordionOpen(!isAccordionOpen)}
             >
                 <h3 style={{margin: 0}}>
-                    {usingJsonMap ? '↔️' : '📋'} {usingJsonMap ? 'Tossup' : 'Undecided'} Ridings ({totalUndecidedRidings})
+                    📋 Undecided Ridings ({totalUndecidedRidings})
                 </h3>
                 <span style={{fontSize: 20}}>
                     {isAccordionOpen ? '▲' : '▼'}

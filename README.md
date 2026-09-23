@@ -8,9 +8,9 @@ accounts, no sign-in: every saved map is public and anonymous.
   through parties. The draft is kept in your browser until you save it.
 - **Save & share**: saving publishes an immutable copy under a random Canada-themed name
   (e.g. `polite-moose`) at `/map/<name>`.
-- **Browse**: `/entries` lists every saved map with per-party counts, alongside the
-  338Canada and Poliwave projections. Sort and filter them however you like.
-- **Edit a copy**: open any saved map or projection and start a new draft from it.
+- **Browse**: `/entries` lists every saved map with per-party counts. Sort and filter
+  them however you like.
+- **Edit a copy**: open any saved map and start a new draft from it.
 - **Export**: download a map as a PNG.
 
 Built with [Next.js](https://nextjs.org) (App Router), React,
@@ -68,8 +68,7 @@ src/
   data/                Riding boundaries and riding → province lookups
   lib/                 Postgres pool, map storage/validation, rate limiting
   localization/        UI strings
-public/                Static projection files (338Canada, Poliwave)
-scripts/               Data-prep and migration helpers
+scripts/               Data-prep helper
 ```
 
 ## Deployment
@@ -91,18 +90,9 @@ Environment variables the container reads at runtime:
 `NEXT_PUBLIC_GA_ID` and `NEXT_PUBLIC_SITE_URL` are baked in at build time (Docker
 build args, set in `cloudbuild.yaml`).
 
-### Migrating from the sign-in version
-
-Earlier versions required sign-in and stored one map per user in a `users` table
-keyed by Firebase UID. `scripts/migrate-to-anonymous-maps.sql` copies those maps
-into the anonymous `maps` table, keeping each map's name so old share links still
-work (`/?sillyName=<name>` redirects to `/map/<name>`). See the infra repo's
-README for the full runbook.
-
 ## Data sources
 
 - Riding boundaries: Statistics Canada / Elections Canada federal electoral districts (2023 representation order)
-- Projections: [338Canada](https://338canada.com) and [Poliwave](https://poliwave.com)
 
 ## License
 

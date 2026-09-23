@@ -113,7 +113,6 @@ export const performExport = async (
 // Function to share the map via a link
 export const shareMap = async (
     sillyName: string,
-    isJsonMap: boolean,
     setIsSharing: React.Dispatch<React.SetStateAction<boolean>>,
     setShareUrl: React.Dispatch<React.SetStateAction<string>>,
     setIsShareModalOpen: React.Dispatch<React.SetStateAction<boolean>>
@@ -121,17 +120,8 @@ export const shareMap = async (
     try {
         setIsSharing(true);
 
-        // Create the shareable URL with the appropriate format
-        const origin = window.location.origin;
-        let url;
-
-        if (isJsonMap) {
-            // For JSON maps, use the current URL
-            url = window.location.href;
-        } else {
-            // For user maps, use the /map/{sillyName} format
-            url = `${origin}/map/${encodeURIComponent(sillyName)}`;
-        }
+        // Saved maps are shared by their /map/{sillyName} URL
+        const url = `${window.location.origin}/map/${encodeURIComponent(sillyName)}`;
 
         // Store the URL in state
         setShareUrl(url);
