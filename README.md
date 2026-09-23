@@ -29,6 +29,13 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000). The `maps` table is created
 automatically on first use.
 
+To fill it with real election results (the 2025 and 2021 federal elections from
+Elections Canada's published data, plus two 3-point swing what-ifs), run:
+
+```bash
+DATABASE_URL=... node scripts/seed-election-maps.mjs
+```
+
 No database handy? Start a throwaway one with Docker:
 
 ```bash
@@ -69,7 +76,7 @@ src/
   data/                Riding boundaries and riding → province lookups
   lib/                 Postgres pool, map storage/validation, rate limiting
   localization/        UI strings
-scripts/               Data-prep helper
+scripts/               Data-prep and seed scripts
 ```
 
 ## Deployment

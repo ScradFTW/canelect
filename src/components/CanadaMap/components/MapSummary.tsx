@@ -34,8 +34,7 @@ const MapSummary: React.FC<MapSummaryProps>
             ref={summaryRef}
         >
             <h3 style={summaryHeaderStyle}>
-                <span>📊</span>
-                <span>Summary</span>
+                <span>Seat count</span>
             </h3>
             <div
                 style={{
@@ -98,12 +97,12 @@ const MapSummary: React.FC<MapSummaryProps>
 
                     {/* Undecided count */}
                     <div style={{marginTop: '16px', fontSize: '15px'}}>
-                        <strong>Undecided:</strong> {nationalTotal - totalDecidedRidings} riding(s)
+                        <strong>Undecided:</strong> {nationalTotal - totalDecidedRidings}
                     </div>
 
                     {/* Total count */}
                     <div style={{marginTop: '8px', fontSize: '15px'}}>
-                        <strong>Total:</strong> {nationalTotal} riding(s)
+                        <strong>Total ridings:</strong> {nationalTotal}
                     </div>
                 </div>
             </div>

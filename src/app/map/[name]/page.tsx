@@ -2,6 +2,7 @@ import type {Metadata, ResolvingMetadata} from 'next';
 import {notFound} from 'next/navigation';
 import {cache} from 'react';
 import {getMap} from '@/lib/maps';
+import {displayName} from '@/lib/displayName';
 import SavedMapView from './SavedMapView';
 
 type Props = {
@@ -23,7 +24,7 @@ export async function generateMetadata({params}: Props, parent: ResolvingMetadat
     const map = await loadMap((await params).name);
     if (!map) return {};
 
-    const title = `${map.name}'s Election Map`;
+    const title = `${displayName(map.name)} · Election Map`;
     // Nested openGraph/twitter objects replace the layout's rather than merging,
     // so carry over its preview image and card type
     const {openGraph, twitter} = await parent;

@@ -55,13 +55,12 @@ const MapControls: React.FC<MapControlsProps> = ({
                 }}
                 title="Share this map"
             >
-                <span role="img" aria-label="Share">🔗</span>
-                {isSharing ? 'Copying...' : (isMobile ? 'Share' : 'Share Map')}
+                {isSharing ? 'Opening…' : 'Share'}
             </button>}
             <button
                 onClick={() => {
                     if (isMobile)
-                        alert(`sorry this is disabled on mobile right now, I don't know why it keeps breaking :(. It should work on desktop tho. \nYou can also try putting your mobile device in landscape mode.`);
+                        alert('Downloading an image isn\'t available on phones yet. Please try it on a computer.');
                     else
                         exportMapAsPNG();
                 }}
@@ -77,8 +76,7 @@ const MapControls: React.FC<MapControlsProps> = ({
                 }}
                 title={t('canadaMap.exportMap')}
             >
-                <span role="img" aria-label="Download">📷</span>
-                {isExporting ? (isMobile ? 'Exporting...' : t('canadaMap.exportingMap')) : (isMobile ? 'Export PNG' : t('canadaMap.exportMap'))}
+                {isExporting ? t('canadaMap.exportingMap') : t('canadaMap.exportMap')}
             </button>
             <button
                 onClick={resetMapView}
@@ -90,10 +88,9 @@ const MapControls: React.FC<MapControlsProps> = ({
                     gap: isMobile ? '4px' : '8px',
                     padding: isMobile ? '6px 10px' : '8px 16px',
                 }}
-                title="Reset map zoom and center"
+                title="Zoom back out to all of Canada"
             >
-                <span role="img" aria-label="Reset">🔍</span>
-                {isMobile ? 'Reset' : t('canadaMap.resetZoom')}
+                {t('canadaMap.resetZoom')}
             </button>
             {children}
         </div>

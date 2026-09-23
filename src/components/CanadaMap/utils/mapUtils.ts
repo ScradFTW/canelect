@@ -55,7 +55,7 @@ export const createOnEachFeature = (
     layer.on('click', () => {
         // Saved maps are read-only; editing happens on a copy
         if (!editable) {
-            throttledToast(`Saved maps can't be changed. Use "Edit a copy" to build on ${sillyName}.`, {
+            throttledToast(`Saved maps can't be changed. Choose "Edit a copy" to make your own version.`, {
                 background: '#f44336',
                 color: '#fff'
             });
@@ -78,7 +78,7 @@ export const createOnEachFeature = (
 
         const background = next ? partyColors[next] : '#E0E0E0';
         const color = (!next || next === Party.Bloc) ? '#000' : '#fff';
-        throttledToast(`${ridingName} updated to ${next ?? '"undecided"'}`, {background, color});
+        throttledToast(`${ridingName}: ${next ?? 'undecided'}`, {background, color});
     });
 };
 
@@ -107,7 +107,7 @@ export const setAllRidingsToParty = (
 ) => {
     if (!data) return;
 
-    if (window.confirm(`Are you sure you want to set all ridings to ${party}? This will override any existing selections.`)) {
+    if (window.confirm(`Give every riding to ${party}? This replaces all your current picks.`)) {
         const newParties: PartyRidings = {};
 
         // Set all ridings to the selected party
@@ -119,7 +119,7 @@ export const setAllRidingsToParty = (
         });
 
         setRidingParties(newParties);
-        toast.success(`All ridings set to ${party}`);
+        toast.success(`Every riding set to ${party}.`);
     }
 };
 
@@ -133,7 +133,7 @@ export const setProvinceUndecidedRidingsToParty = (
 ) => {
     if (!editable) return;
 
-    if (window.confirm(`Are you sure you want to set all undecided ridings in ${province} to ${party}?`)) {
+    if (window.confirm(`Give every undecided riding in ${province} to ${party}?`)) {
         const provinceRidings = undecidedRidingsByProvince[province] || [];
         if (provinceRidings.length === 0) return;
 
@@ -148,7 +148,7 @@ export const setProvinceUndecidedRidingsToParty = (
             return newParties;
         });
 
-        toast.success(`All undecided ridings in ${province} set to ${party}`);
+        toast.success(`Undecided ridings in ${province} set to ${party}.`);
     }
 };
 
@@ -162,7 +162,7 @@ export const setProvinceAssignedRidingsToParty = (
 ) => {
     if (!editable) return;
 
-    if (window.confirm(`Are you sure you want to set all assigned ridings in ${province} to ${party}?`)) {
+    if (window.confirm(`Change every assigned riding in ${province} to ${party}?`)) {
         const provinceRidings = assignedRidingsByProvince[province] || [];
         if (provinceRidings.length === 0) return;
 
@@ -177,7 +177,7 @@ export const setProvinceAssignedRidingsToParty = (
             return newParties;
         });
 
-        toast.success(`All assigned ridings in ${province} set to ${party}`);
+        toast.success(`Assigned ridings in ${province} changed to ${party}.`);
     }
 };
 
@@ -219,7 +219,7 @@ export const centerMapOnRiding = (
 
         // Highlight the riding briefly with a toast notification
         const ridingName = ridingFeature.properties.ED_NAMEE || ridingFeature.properties.ED_NAMEF || 'Selected riding';
-        throttledToast(`Centered on ${ridingName}`, {background: '#E0E0E0', color: '#000'});
+        throttledToast(`Showing ${ridingName}`, {background: '#E0E0E0', color: '#000'});
     }
 };
 
@@ -253,7 +253,7 @@ export const resetRidings = async (
     setIsResetting: React.Dispatch<React.SetStateAction<boolean>>,
     setRidingParties: React.Dispatch<React.SetStateAction<PartyRidings>>
 ) => {
-    if (window.confirm("Are you sure you want to reset the map? This will clear all ridings (and cant be undone)")) {
+    if (window.confirm("Clear every riding on your map? This can't be undone.")) {
         setIsResetting(true);
         setRidingParties({});
         setTimeout(() => setIsResetting(false), 200);

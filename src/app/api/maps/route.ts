@@ -161,7 +161,7 @@ const allowSave = createRateLimiter({limit: 10, windowMs: 10 * 60 * 1000});
 // Save a new map; returns its generated name
 export async function POST(req: NextRequest) {
     if (!allowSave(clientIp(req.headers))) {
-        return NextResponse.json({error: 'Too many maps saved. Please try again in a few minutes.'}, {status: 429});
+        return NextResponse.json({error: 'You\'ve saved a lot of maps in a short time. Please wait a few minutes and try again.'}, {status: 429});
     }
 
     const body = await readJsonBody(req, MAX_BODY_BYTES) as { ridings?: unknown } | null;
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({error: 'Invalid payload – "ridings" must map riding IDs to parties.'}, {status: 400});
     }
     if (Object.keys(ridings).length === 0) {
-        return NextResponse.json({error: 'Assign at least one riding before saving.'}, {status: 400});
+        return NextResponse.json({error: 'Give at least one riding a party before saving.'}, {status: 400});
     }
 
     try {

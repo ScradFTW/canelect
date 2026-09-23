@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
+import { displayName } from '@/lib/displayName';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 // Color mapping for parties
@@ -169,10 +171,13 @@ const EntriesView: React.FC = () => {
     return (
         <>
             <div className="container">
-                <h1>Saved Maps</h1>
+                <h1>Saved maps</h1>
+                <p className="intro">
+                    Every map saved on this site. Open one to see it riding by riding, or to start your own map from a copy.
+                </p>
 
                 <div className="header-actions">
-                    <a href={"/"} className="back-link">← Back to your draft</a>
+                    <a href={"/"} className="back-link">← Back to your map</a>
 
                     {!loading && data && (
                         <>
@@ -188,7 +193,7 @@ const EntriesView: React.FC = () => {
                                             localStorage.setItem('hideIncomplete', String(newValue));
                                         }}
                                     />
-                                    <label htmlFor="hide-incomplete">Hide incomplete maps</label>
+                                    <label htmlFor="hide-incomplete">Only show complete maps (all 343 ridings)</label>
                                 </div>
                                 <div className="filter-option">
                                     <input
@@ -201,7 +206,7 @@ const EntriesView: React.FC = () => {
                                             localStorage.setItem('hideSingleParty', String(newValue));
                                         }}
                                     />
-                                    <label htmlFor="hide-single-party">Hide single-party maps ({'>'}80% of ridings)</label>
+                                    <label htmlFor="hide-single-party">Hide maps where one party has over 80% of ridings</label>
                                 </div>
                             </div>
 
@@ -222,9 +227,9 @@ const EntriesView: React.FC = () => {
                                         }
                                     }}
                                 >
-                                    <option value="created_at">Date Saved</option>
+                                    <option value="created_at">Date saved</option>
                                     <option value="name">Name</option>
-                                    <option value="total_count">Total Ridings</option>
+                                    <option value="total_count">Ridings filled in</option>
                                     <option value="liberal">Liberal</option>
                                     <option value="conservative">Conservative</option>
                                     <option value="ndp">NDP</option>
@@ -244,27 +249,30 @@ const EntriesView: React.FC = () => {
                     )}
                 </div>
 
-                {loading && <p className="info">Loading...</p>}
+                {loading && <p className="info">Loading maps…</p>}
                 {error && <p className="error">{error}</p>}
 
                 {!loading && data && (
                     <>
+                        {data.total === 0 && (
+                            <p className="info">No maps have been saved yet. <Link href="/">Make the first one.</Link></p>
+                        )}
                         <div className="cards-container">
                             {sortedEntries.map((entry, idx) => (
                                 <div key={idx} className="entry-card">
                                     <div className="card-header">
-                                        <h2 className="entry-name">{entry.name}</h2>
+                                        <h2 className="entry-name">{displayName(entry.name)}</h2>
                                         <a href={`/map/${encodeURIComponent(entry.name)}`} className="view-button">
-                                            View Map
+                                            View
                                         </a>
                                     </div>
 
                                     <div className="card-meta">
                                         <span className="updated-at">
-                                            Saved: {new Date(entry.created_at).toLocaleString()}
+                                            Saved {new Date(entry.created_at).toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'})}
                                         </span>
                                         <span className="total-count">
-                                            Total: <strong>{entry.total_count}</strong> ridings
+                                            <strong>{entry.total_count}</strong> of 343 ridings
                                         </span>
                                     </div>
 
@@ -389,16 +397,16 @@ const EntriesView: React.FC = () => {
 
                                 <span className="pagination-info">
                                     Page {pageNum} of {Math.max(1, Math.ceil((data.filtered_count ?? data.total) / limitNum))}
-                                    {'  '}
+                                    {' · '}
                                     {(hideIncomplete || hideSingleParty) ? (
                                         <>
-                                            ({data.filtered_count ?? data.total} filtered / {data.total} total entries)
-                                            {(data.filtered_count ?? data.total) === 0 && (
-                                                <span className="no-results">No entries match the current filters</span>
+                                            {data.filtered_count ?? data.total} of {data.total} maps match your filters
+                                            {(data.filtered_count ?? data.total) === 0 && data.total > 0 && (
+                                                <span className="no-results">No maps match these filters.</span>
                                             )}
                                         </>
                                     ) : (
-                                        <>({data.total} total entries)</>
+                                        <>{data.total} {data.total === 1 ? 'map' : 'maps'}</>
                                     )}
                                 </span>
 
@@ -638,6 +646,14 @@ const EntriesView: React.FC = () => {
 
                 .info {
                     color: #555;
+                }
+
+                .intro {
+                    text-align: center;
+                    color: #555;
+                    margin: -8px auto 24px;
+                    max-width: 640px;
+                    line-height: 1.5;
                 }
 
                 .error {

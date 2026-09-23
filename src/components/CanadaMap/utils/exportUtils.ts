@@ -130,7 +130,7 @@ export const shareMap = async (
         setIsShareModalOpen(true);
     } catch (error) {
         console.error('Failed to share map:', error);
-        toast.error('Failed to create share link');
+        toast.error('Couldn\'t create a share link. Please try again.');
     } finally {
         setIsSharing(false);
     }
@@ -147,7 +147,7 @@ export const copyTextSummary = async (
         setIsCopyingText(true);
 
         // Create a summary text with counts for each party
-        let summaryText = `Canada Federal 2025 Projection:\n\n`;
+        let summaryText = `My Canadian federal election map:\n\n`;
 
         // Add party counts sorted by riding counts
         [...partyValues].sort((a, b) => (nationalCounts[b] || 0) - (nationalCounts[a] || 0)).forEach(party => {
@@ -164,10 +164,10 @@ export const copyTextSummary = async (
         await navigator.clipboard.writeText(summaryText);
 
         // Show success toast
-        toast.success('Summary copied to clipboard!');
+        toast.success('Seat count copied.');
     } catch (error) {
         console.error('Failed to copy summary:', error);
-        toast.error('Failed to copy summary');
+        toast.error('Couldn\'t copy the seat count.');
     } finally {
         setIsCopyingText(false);
     }
@@ -185,10 +185,10 @@ export const copyShareLink = async (
         await navigator.clipboard.writeText(shareUrl);
 
         // Show success toast
-        toast.success('Link copied to clipboard!');
+        toast.success('Link copied.');
     } catch (error) {
         console.error('Failed to copy link:', error);
-        toast.error('Failed to copy link');
+        toast.error('Couldn\'t copy the link.');
     } finally {
         setIsCopyingLink(false);
     }

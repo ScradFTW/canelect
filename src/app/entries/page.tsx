@@ -3,7 +3,8 @@ import {Suspense} from 'react';
 import EntriesView from './EntriesView';
 
 export const metadata: Metadata = {
-    title: 'Saved Maps',
+    title: 'Saved maps',
+    description: 'Browse every Canadian federal election map saved on Election Map.',
 };
 
 export default function Page() {

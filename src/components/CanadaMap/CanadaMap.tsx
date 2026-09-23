@@ -7,6 +7,7 @@ import GEOID_TO_PROVINCE from '@/data/geoid_to_province.json';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import Link from 'next/link';
+import {displayName} from '@/lib/displayName';
 import {useRouter} from 'next/navigation';
 import {toast} from 'react-toastify';
 import {useTranslation} from '@/localization';
@@ -124,7 +125,7 @@ const GeoJsonMap: React.FC<CanadaMapProps>
     // Publish the draft as a new anonymous map, then open its page
     const handleSaveMap = async () => {
         if (!Object.values(ridingParties).some(Boolean)) {
-            toast.error('Assign at least one riding before saving.');
+            toast.error('Give at least one riding a party before saving.');
             return;
         }
         setIsSaving(true);
@@ -137,11 +138,11 @@ const GeoJsonMap: React.FC<CanadaMapProps>
             const body = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(body.error || 'Failed to save map');
 
-            toast.success('Map saved!');
+            toast.success('Map saved.');
             router.push(`/map/${encodeURIComponent(body.name)}`);
         } catch (error) {
             console.error('Failed to save map:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to save map');
+            toast.error(error instanceof Error ? error.message : 'Couldn\'t save your map. Please try again.');
         } finally {
             setIsSaving(false);
         }
@@ -149,7 +150,7 @@ const GeoJsonMap: React.FC<CanadaMapProps>
 
     // Start a new draft from the map being viewed
     const handleEditCopy = () => {
-        if (hasDraft() && !window.confirm('This will replace your current draft map. Continue?')) {
+        if (hasDraft() && !window.confirm('Replace your current map with a copy of this one?')) {
             return;
         }
         saveDraft(ridingParties);
@@ -300,21 +301,35 @@ const GeoJsonMap: React.FC<CanadaMapProps>
     return (
         <div style={containerStyle}>
             <h2 style={headerStyle}>🇨🇦 Election Map</h2>
-            <p style={paragraphStyle}>
-                {
-                    editable
-                        ? <>This is your draft. It&apos;s kept in this browser until you save it.<br/>
-                            Saving publishes it anonymously under a random name, like <strong>polite-moose</strong>.</>
-                        : <>
-                            You are looking at <strong>{sillyName}</strong><br/>
-                            <Link href="/" style={{color: '#0070f3', textDecoration: 'none'}}>{t('entries.backToMap')}</Link>
-                        </>
-                }
-                {editable && <><br/> Hover over a riding to see its name.<br/>Click to cycle party colors (or clear).</>}
-            </p>
+            {editable ? (
+                <>
+                    <p style={paragraphStyle}>
+                        Predict the next Canadian federal election, one riding at a time.
+                    </p>
+                    <p style={paragraphStyle}>
+                        Click a riding to give it a party. Click again to switch parties or clear it.
+                        Your map is kept in this browser as you work.
+                    </p>
+                    <p style={paragraphStyle}>
+                        When you&apos;re done, choose <strong>Save &amp; share</strong> to publish your map
+                        under a random name, like <strong>Polite moose</strong>. Saved maps are public
+                        and can&apos;t be changed.
+                    </p>
+                </>
+            ) : (
+                <>
+                    <p style={paragraphStyle}>
+                        You&apos;re viewing <strong>{displayName(sillyName)}</strong>. Saved maps can&apos;t be changed,
+                        but you can edit a copy.
+                    </p>
+                    <p style={paragraphStyle}>
+                        <Link href="/" style={{color: '#0070f3', textDecoration: 'none'}}>{t('entries.backToMap')}</Link>
+                    </p>
+                </>
+            )}
 
-            <p style={paragraphStyle}>
-                Browse everyone&apos;s saved maps <Link href="/entries">here</Link>.
+            <p style={{...paragraphStyle, marginTop: 8, marginBottom: 24}}>
+                <Link href="/entries">See everyone&apos;s saved maps</Link>
             </p>
 
             <MapControls
@@ -338,7 +353,7 @@ const GeoJsonMap: React.FC<CanadaMapProps>
                             fontSize: isMobile ? '14px' : '16px',
                         }}
                     >
-                        {isSaving ? 'Saving…' : '💾 Save & share'}
+                        {isSaving ? 'Saving…' : 'Save & share'}
                     </button>
                 ) : (
                     <button
@@ -350,7 +365,7 @@ const GeoJsonMap: React.FC<CanadaMapProps>
                             fontSize: isMobile ? '14px' : '16px',
                         }}
                     >
-                        ✏️ Edit a copy
+                        Edit a copy
                     </button>
                 )}
             </MapControls>
@@ -390,7 +405,7 @@ const GeoJsonMap: React.FC<CanadaMapProps>
                     onClick={() => setIsAssignedAccordionOpen(!isAssignedAccordionOpen)}
                 >
                     <h3 style={{margin: 0}}>
-                        🗺️ Assigned Ridings ({Object.values(assignedRidingsByProvince).flat().length})
+                        Assigned ridings ({Object.values(assignedRidingsByProvince).flat().length})
                     </h3>
                     <span style={{fontSize: 20}}>
                         {isAssignedAccordionOpen ? '▲' : '▼'}
@@ -400,7 +415,7 @@ const GeoJsonMap: React.FC<CanadaMapProps>
                 {isAssignedAccordionOpen && (
                     <div style={accordionContentStyle}>
                         {Object.values(assignedRidingsByProvince).flat().length === 0 ? (
-                            <p>No ridings have been assigned a party yet!</p>
+                            <p>No ridings have a party yet. Click one on the map to start.</p>
                         ) : (
                             <div>
                                 {Object.keys(assignedRidingsByProvince).sort().map(province => {
@@ -430,7 +445,7 @@ const GeoJsonMap: React.FC<CanadaMapProps>
                                                             color: '#555',
                                                             marginBottom: '2px'
                                                         }}>
-                                                            Set all ridings to:
+                                                            Change all to:
                                                         </div>
                                                         <div style={{display: 'flex', gap: '8px'}}>
                                                             {partyValues.map(party => {
@@ -454,7 +469,7 @@ const GeoJsonMap: React.FC<CanadaMapProps>
                                                                             cursor: 'pointer',
                                                                             fontWeight: 'bold'
                                                                         }}
-                                                                        title={`Set all assigned ridings in ${province} to ${party}`}
+                                                                        title={`Change every assigned riding in ${province} to ${party}`}
                                                                     >
                                                                         {party.charAt(0)}
                                                                     </button>
@@ -478,7 +493,7 @@ const GeoJsonMap: React.FC<CanadaMapProps>
                                                                 color: textColor
                                                             }}
                                                             onClick={() => handleCenterMapOnRiding(riding.id)}
-                                                            title={`Click to center map on ${riding.name}`}
+                                                            title={`Show ${riding.name} on the map`}
                                                         >
                                                             {riding.name} ({riding.party})
                                                         </div>

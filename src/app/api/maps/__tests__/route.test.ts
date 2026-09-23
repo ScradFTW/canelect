@@ -125,7 +125,7 @@ describe('POST /api/maps', () => {
     it('rejects a map with no ridings assigned', async () => {
         const res = await post(JSON.stringify({ridings: {'10001': null}}));
         expect(res.status).toBe(400);
-        expect(await res.json()).toEqual({error: 'Assign at least one riding before saving.'});
+        expect(await res.json()).toEqual({error: 'Give at least one riding a party before saving.'});
     });
 
     it('rejects a body over 64 KB even without a Content-Length header', async () => {

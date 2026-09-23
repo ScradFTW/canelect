@@ -36,7 +36,7 @@ const UndecidedRidings: React.FC<UndecidedRidingsProps> = ({
                 onClick={() => setIsAccordionOpen(!isAccordionOpen)}
             >
                 <h3 style={{margin: 0}}>
-                    📋 Undecided Ridings ({totalUndecidedRidings})
+                    Undecided ridings ({totalUndecidedRidings})
                 </h3>
                 <span style={{fontSize: 20}}>
                     {isAccordionOpen ? '▲' : '▼'}
@@ -46,7 +46,7 @@ const UndecidedRidings: React.FC<UndecidedRidingsProps> = ({
             {isAccordionOpen && (
                 <div style={accordionContentStyle}>
                     {totalUndecidedRidings === 0 ? (
-                        <p>All ridings have been assigned a party!</p>
+                        <p>Every riding has a party.</p>
                     ) : (
                         <div>
                             {Object.keys(undecidedRidingsByProvince).sort().map(province => {
@@ -90,7 +90,7 @@ const UndecidedRidings: React.FC<UndecidedRidingsProps> = ({
                                                                         fontSize: '12px',
                                                                         padding: '6px 10px',
                                                                     }}
-                                                                    title={`Set all undecided ridings in ${province} to ${party}`}
+                                                                    title={`Give every undecided riding in ${province} to ${party}`}
                                                                 >
                                                                     All {party}
                                                                 </button>
@@ -110,7 +110,7 @@ const UndecidedRidings: React.FC<UndecidedRidingsProps> = ({
                                                     key={riding.id}
                                                     style={ridingItemStyle}
                                                     onClick={() => centerMapOnRiding(riding.id)}
-                                                    title={`Center map on ${riding.name}`}
+                                                    title={`Show ${riding.name} on the map`}
                                                 >
                                                     {riding.name}
                                                 </div>

@@ -50,7 +50,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
                     alignItems: 'center',
                     marginBottom: '16px',
                 }}>
-                    <h3 style={{margin: 0}}>Share Map</h3>
+                    <h3 style={{margin: 0}}>Share this map</h3>
                     <button
                         onClick={() => setIsShareModalOpen(false)}
                         style={{
@@ -66,7 +66,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
                     </button>
                 </div>
 
-                <p>Share your map with others using the link below:</p>
+                <p>Anyone with this link can view the map.</p>
 
                 <div style={{
                     padding: '12px',
@@ -93,7 +93,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
                             ...(isCopyingLink ? buttonDisabledStyle : {}),
                         }}
                     >
-                        {isCopyingLink ? 'Copying...' : 'Copy Link'}
+                        {isCopyingLink ? 'Copying…' : 'Copy link'}
                     </button>
                     <button
                         onClick={copyTextSummary}
@@ -104,7 +104,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
                             ...(isCopyingText ? buttonDisabledStyle : {}),
                         }}
                     >
-                        {isCopyingText ? 'Copying...' : 'Copy Summary Text'}
+                        {isCopyingText ? 'Copying…' : 'Copy seat count'}
                     </button>
                 </div>
 

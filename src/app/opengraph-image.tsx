@@ -1,6 +1,6 @@
 import {ImageResponse} from 'next/og';
 
-export const alt = 'Election Map — build your Canadian federal election prediction map';
+export const alt = 'Election Map: predict the Canadian federal election, riding by riding';
 export const size = {width: 1200, height: 630};
 export const contentType = 'image/png';
 
@@ -23,7 +23,7 @@ export default function OpengraphImage() {
             }}>
                 <div style={{fontSize: 160}}>🍁</div>
                 <div style={{fontSize: 96, fontWeight: 700}}>Election Map</div>
-                <div style={{fontSize: 40, marginTop: 16, color: '#333'}}>Build and share your riding-by-riding prediction</div>
+                <div style={{fontSize: 40, marginTop: 16, color: '#333'}}>Predict the federal election, riding by riding</div>
             </div>
         ),
         size,

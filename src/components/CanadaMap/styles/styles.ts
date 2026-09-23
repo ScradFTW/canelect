@@ -23,7 +23,12 @@ export const headerStyle: CSSProperties = {
 // Paragraph styles
 export const paragraphStyle: CSSProperties = {
     textAlign: 'center',
-    marginBottom: 28,
+    // Keep lines to a readable length on wide screens
+    maxWidth: 640,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    marginTop: 0,
+    marginBottom: 12,
     fontSize: 16,
     lineHeight: 1.6,
     color: '#555',

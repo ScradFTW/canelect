@@ -5,7 +5,7 @@ import './globals.css';
 import StyledJsxRegistry from './registry';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://electionmap.bradjobe.dev';
-const description = 'Create your own prediction map for the Canadian federal election. Assign parties to ridings across the country and see how your prediction compares to others.';
+const description = 'Predict the Canadian federal election one riding at a time, then save your map and share the link.';
 
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     description,
     openGraph: {
         title: 'Election Map',
-        description: 'Create your own prediction map for the Canadian federal election. View and share riding-by-riding predictions.',
+        description,
         type: 'website',
         siteName: 'Election Map',
     },
