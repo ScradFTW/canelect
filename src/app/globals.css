@@ -1,0 +1,16 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Keep Leaflet's zoom buttons out of exported PNGs */
+.map-exporting .leaflet-control-zoom {
+    display: none;
+}
+
+/* Chrome outlines a riding's whole bounding box when it's clicked; keep the
+   focus ring for keyboard users only */
+.leaflet-interactive:focus:not(:focus-visible) {
+    outline: none;
+}

@@ -1,0 +1,46 @@
+# Deploys on every push to main — see bradjobe-dev-infra's
+# cloudbuild_triggers.tf (google_cloudbuild_trigger.app["electionmap"]).
+steps:
+  - id: check
+    name: node:24
+    entrypoint: bash
+    args:
+      - -c
+      - npm ci && npm run lint && npm run typecheck
+
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg=NEXT_PUBLIC_GA_ID=${_NEXT_PUBLIC_GA_ID}
+      - --build-arg=NEXT_PUBLIC_SITE_URL=${_NEXT_PUBLIC_SITE_URL}
+      - -t
+      - ${_ARTIFACT_REGISTRY}/electionmap:${SHORT_SHA}
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_ARTIFACT_REGISTRY}/electionmap:${SHORT_SHA}
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - electionmap
+      - --image=${_ARTIFACT_REGISTRY}/electionmap:${SHORT_SHA}
+      - --region=${_REGION}
+      - --quiet
+
+substitutions:
+  _REGION: northamerica-northeast1
+  _ARTIFACT_REGISTRY: northamerica-northeast1-docker.pkg.dev/bradjobe-dev/apps
+  # Public values baked into the browser bundle
+  _NEXT_PUBLIC_GA_ID: G-XK4MJWSZH6
+  _NEXT_PUBLIC_SITE_URL: https://electionmap.bradjobe.dev
+
+options:
+  logging: CLOUD_LOGGING_ONLY

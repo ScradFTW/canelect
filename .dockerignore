@@ -1,0 +1,13 @@
+.git
+.next
+node_modules
+.env*
+!.env.local.example
+.idea
+.vscode
+*.tsbuildinfo
+Dockerfile
+.dockerignore
+cloudbuild.yaml
+scripts
+docs

@@ -1,0 +1,44 @@
+{
+  "name": "canelect",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@next/third-parties": "^16.3.6",
+    "@turf/turf": "^7.4.0",
+    "dom-to-image-more": "^3.10.2",
+    "leaflet": "^1.9.4",
+    "lodash": "^4.18.1",
+    "next": "^16.3.6",
+    "pg": "^8.23.0",
+    "proj4": "^2.22.0",
+    "proj4leaflet": "^1.0.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-leaflet": "^5.0.0",
+    "react-toastify": "^11.1.0",
+    "server-only": "^0.0.1",
+    "styled-jsx": "^5.1.6"
+  },
+  "devDependencies": {
+    "@types/geojson": "^7946.0.16",
+    "@types/leaflet": "^1.9.22",
+    "@types/lodash": "^4.17.25",
+    "@types/node": "^24.13.6",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.6",
+    "typescript": "~6.0"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "private": true
+}
