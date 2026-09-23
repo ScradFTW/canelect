@@ -50,12 +50,12 @@ docker run -d --rm --name electionmap-db -e POSTGRES_PASSWORD=dev -p 5432:5432 p
 
 | Route                  | Method | What it does                                                                 |
 |------------------------|--------|------------------------------------------------------------------------------|
-| `/api/maps`            | GET    | List saved maps with party counts. Supports `page`, `limit`, `sortKey`, `sortAsc`, `hideIncomplete`, `hideSingleParty`. |
+| `/api/maps`            | GET    | List saved maps with party counts. Supports `page`, `limit` (max 100), `sortKey`, `sortAsc`, `hideIncomplete`, `hideSingleParty`. |
 | `/api/maps`            | POST   | Save `{ "ridings": { "<ridingId>": "<party>" } }`; returns the generated `name`. Limited to 10 saves per IP per 10 minutes. |
 | `/api/maps/<name>`     | GET    | One saved map.                                                               |
 
 Saved maps are validated on the server: only the 343 known riding IDs and the five
-party names are accepted.
+party names are accepted, in a request body of at most 64 KB.
 
 ## Project layout
 

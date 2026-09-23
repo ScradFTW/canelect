@@ -40,7 +40,10 @@ export const createOnEachFeature = (
         layer.unbindTooltip();
         const selectedParty = pr[geoId] || 'undecided';
         const tooltipText = `${feat.properties.ED_NAMEE || feat.properties.ED_NAMEF || 'Name not found'} (${selectedParty})`;
-        layer.bindTooltip(tooltipText, tooltipOptions);
+        // Leaflet treats string content as HTML; give it an element holding plain text
+        const content = document.createElement('span');
+        content.textContent = tooltipText;
+        layer.bindTooltip(content, tooltipOptions);
         if (open) layer.openTooltip();
     };
 

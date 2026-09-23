@@ -8,6 +8,21 @@ const RIDING_IDS = new Set(Object.keys(GEOID_TO_PROVINCE));
 const PARTIES = new Set<string>(Object.values(Party));
 
 /**
+ * Keeps only entries with a known riding ID and party. Used on read, since
+ * maps migrated from the old sign-in version were never validated.
+ */
+export function sanitizeRidings(input: unknown): PartyRidings {
+    const ridings: PartyRidings = {};
+    if (typeof input !== 'object' || input === null || Array.isArray(input)) return ridings;
+    for (const [id, party] of Object.entries(input)) {
+        if (RIDING_IDS.has(id) && typeof party === 'string' && PARTIES.has(party)) {
+            ridings[id] = party as Party;
+        }
+    }
+    return ridings;
+}
+
+/**
  * Checks a client-submitted map: only known riding IDs, only known parties.
  * Returns the cleaned map with undecided ridings dropped, or null if invalid.
  */
@@ -83,5 +98,5 @@ export async function getMap(name: string): Promise<SavedMap | null> {
     );
     if (!res.rowCount) return null;
     const row = res.rows[0];
-    return {name: row.name, ridings: row.ridings, createdAt: row.created_at.toISOString()};
+    return {name: row.name, ridings: sanitizeRidings(row.ridings), createdAt: row.created_at.toISOString()};
 }

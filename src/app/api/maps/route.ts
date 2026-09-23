@@ -30,6 +30,13 @@ const PARTY_SORT_KEYS: Record<string, string> = {
     bloc: 'Bloc Quebecois',
 };
 
+// Each listed map runs several jsonb subqueries, so keep pages small
+const MAX_PAGE_SIZE = 100;
+const MAX_PAGE = 100_000;
+
+// A full 343-riding map is ~12KB of JSON; anything far bigger isn't a map
+const MAX_BODY_BYTES = 64 * 1024;
+
 const ASSIGNED_COUNT = '(SELECT COUNT(*) FROM jsonb_each_text(ridings) WHERE value IS NOT NULL)';
 
 // List all saved maps, with per-party counts, filters, sorting and pagination
@@ -38,9 +45,9 @@ export async function GET(req: NextRequest) {
 
     // Pagination params
     const pageQuery = parseInt(params.get('page') ?? '1', 10);
-    const limitQuery = parseInt(params.get('limit') ?? '1000', 10);
-    const page = pageQuery > 0 ? pageQuery : 1;
-    const limit = limitQuery > 0 && limitQuery <= 1000 ? limitQuery : 1000;
+    const limitQuery = parseInt(params.get('limit') ?? String(MAX_PAGE_SIZE), 10);
+    const page = pageQuery > 0 && pageQuery <= MAX_PAGE ? pageQuery : 1;
+    const limit = limitQuery > 0 && limitQuery <= MAX_PAGE_SIZE ? limitQuery : MAX_PAGE_SIZE;
     const offset = (page - 1) * limit;
 
     // Filter params
@@ -56,7 +63,7 @@ export async function GET(req: NextRequest) {
         orderClause = `${sortKey} ${direction}`;
     } else if (sortKey === 'total_count') {
         orderClause = `${ASSIGNED_COUNT} ${direction}`;
-    } else if (sortKey in PARTY_SORT_KEYS) {
+    } else if (Object.hasOwn(PARTY_SORT_KEYS, sortKey)) {
         orderClause = `(SELECT COUNT(*) FROM jsonb_each_text(ridings) WHERE value = '${PARTY_SORT_KEYS[sortKey]}') ${direction}`;
     }
 
@@ -123,6 +130,31 @@ export async function GET(req: NextRequest) {
     }
 }
 
+/** Parses a JSON body, giving up (null) once it exceeds maxBytes rather than buffering it all. */
+async function readJsonBody(req: NextRequest, maxBytes: number): Promise<unknown> {
+    const declared = Number(req.headers.get('content-length') ?? 0);
+    if (declared > maxBytes || !req.body) return null;
+
+    const reader = req.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    for (;;) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > maxBytes) {
+            await reader.cancel();
+            return null;
+        }
+        chunks.push(value);
+    }
+    try {
+        return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    } catch {
+        return null;
+    }
+}
+
 // No accounts, so cap anonymous saves per IP
 const allowSave = createRateLimiter({limit: 10, windowMs: 10 * 60 * 1000});
 
@@ -132,7 +164,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({error: 'Too many maps saved. Please try again in a few minutes.'}, {status: 429});
     }
 
-    const body = await req.json().catch(() => null) as { ridings?: unknown } | null;
+    const body = await readJsonBody(req, MAX_BODY_BYTES) as { ridings?: unknown } | null;
     const ridings = parseRidings(body?.ridings);
     if (!ridings) {
         return NextResponse.json({error: 'Invalid payload – "ridings" must map riding IDs to parties.'}, {status: 400});

@@ -16,15 +16,25 @@ CREATE TABLE IF NOT EXISTS maps
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- The old API stored whatever JSON a signed-in client sent, so copy only
+-- entries the app itself would accept: a 5-digit riding ID mapped to one of
+-- the five parties. Undecided (null) ridings are dropped, as the app does.
+CREATE OR REPLACE TEMP VIEW valid_user_ridings AS
+SELECT u.uid, r.key, r.value
+FROM users u,
+     jsonb_each_text(CASE WHEN jsonb_typeof(u.ridings) = 'object' THEN u.ridings ELSE '{}'::jsonb END) AS r(key, value)
+WHERE r.key ~ '^[0-9]{5}$'
+  AND r.value IN ('Liberal', 'Conservative', 'NDP', 'Green', 'Bloc Quebecois');
+
 INSERT INTO maps (name, ridings, created_at)
-SELECT silly_name,
-       -- drop undecided (null) ridings, matching what the app now stores
-       COALESCE((SELECT jsonb_object_agg(key, value)
-                 FROM jsonb_each(ridings)
-                 WHERE value <> 'null'::jsonb), '{}'::jsonb),
-       COALESCE(updated_at, NOW())
-FROM users
-WHERE EXISTS (SELECT 1 FROM jsonb_each(ridings) WHERE value <> 'null'::jsonb)
+SELECT u.silly_name,
+       jsonb_object_agg(v.key, v.value),
+       COALESCE(u.updated_at, NOW())
+FROM users u
+         JOIN valid_user_ridings v ON v.uid = u.uid
+-- Names come from the old server-side generator; skip anything else
+WHERE u.silly_name ~ '^[a-z0-9‑-]{1,64}$'
+GROUP BY u.uid, u.silly_name, u.updated_at
 ON CONFLICT (name) DO NOTHING;
 
 COMMIT;
